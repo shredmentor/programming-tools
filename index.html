@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programming Tools | ShredMentor</title>
+<style>
+  :root {
+    --bg: #101010;
+    --card: #1b1b1b;
+    --border: #363636;
+    --text: #eeeeee;
+    --muted: #aaa;
+    --accent: #ffcc66;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+  }
+
+  main {
+    width: min(1100px, 90%);
+    margin: 0 auto;
+    padding: 50px 0 70px;
+  }
+
+  h1 {
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-stretch: condensed;
+    font-size: clamp(36px, 5vw, 58px);
+    line-height: 1.1;
+    margin: 0 0 24px;
+    color: var(--accent);
+  }
+
+  .intro {
+    max-width: 900px;
+    font-size: 17px;
+    color: #ccc;
+  }
+
+  .intro ol {
+    padding-left: 24px;
+    margin: 15px 0;
+  }
+
+  .intro li { margin-bottom: 10px; }
+
+  .intro strong { color: #fff; }
+
+  .compatibility {
+    margin: 22px 0 45px;
+    color: var(--accent);
+    font-size: 15px;
+  }
+
+  h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .2s, transform .2s;
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    outline: none;
+  }
+
+  .preview {
+    aspect-ratio: 16 / 10;
+    background: #080808;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview img {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .placeholder {
+    font-family: "Courier New", monospace;
+    color: var(--accent);
+    font-size: clamp(24px, 3vw, 43px);
+    font-weight: bold;
+    letter-spacing: -1px;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .card-body {
+    padding: 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card h3 {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-size: 21px;
+  }
+
+  .card p {
+    margin: 0 0 22px;
+    color: var(--muted);
+    font-size: 15px;
+    flex: 1;
+  }
+
+  .launch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--accent);
+  }
+
+  footer {
+    margin-top: 55px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: #777;
+    text-align: center;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  @media (max-width: 760px) {
+    main { padding-top: 32px; }
+    .cards { grid-template-columns: 1fr; }
+    .intro { font-size: 15px; }
+    .placeholder { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <h1>Programming Tools</h1>
+
+    <div class="intro">
+      <p>
+        I created these Programming Tools to give myself
+        interactive learning tools to better understand how:
+      </p>
+
+      <ol>
+        <li>
+          Everyday numbers are represented in
+          <strong>binary code</strong>, and how higher ranges
+          of numbers are accessible by adding additional bytes.
+        </li>
+        <li>
+          <strong>ASCII characters</strong> are represented
+          by binary code.
+        </li>
+        <li>
+          <strong>HTML colors</strong> are created through
+          hexadecimal values.
+        </li>
+      </ol>
+    </div>
+
+    <p class="compatibility">
+      Designed to work on any computer or mobile device.
+    </p>
+  </header>
+
+  <section aria-label="Interactive programming tools">
+    <h2>Interactive Tools</h2>
+
+    <div class="cards">
+
+      <a class="card" href="./binary/">
+        <div class="preview">
+          <img src="./binary-numbers.png"
+               alt="Binary number translator screenshot">
+          <div class="placeholder">01010101</div>
+        </div>
+        <div class="card-body">
+          <h3>Binary Number Translator</h3>
+          <p>
+            Explore how binary digits represent decimal numbers.
+            Toggle individual bits and expand from 8 to 64 bits
+            to see how each power of two contributes to the total.
+          </p>
+          <span class="launch">Launch Tool →</span>
+        </div>
+      </a>
+
+      <a class="card" href="./binary-ascii/">
+        <div class="preview">
+          <img src="./binary-ascii.png"
+               alt="Binary ASCII translator screenshot">
+          <div class="placeholder">01000001 = A</div>
+        </div>
+        <div class="card-body">
+          <h3>Binary to ASCII Translator</h3>
+          <p>
+            Discover how eight binary digits represent
+            ASCII characters. Toggle bits to see the
+            corresponding character and decimal code
+            change instantly.
+          </p>
+          <span class="launch">Launch Tool →</span>
+        </div>
+      </a>
+
+      <a class="card" href="./hex-color/">
+        <div class="preview">
+          <img src="./hexadecimal-html-colors.png"
+               alt="Hexadecimal HTML color translator screenshot">
+          <div class="placeholder">#FFCC66</div>
+        </div>
+        <div class="card-body">
+          <h3>Hexadecimal Color Translator</h3>
+          <p>
+            Learn how six hexadecimal digits define HTML
+            colors. Change individual digits and watch
+            the resulting color update in real time.
+          </p>
+          <span class="launch">Launch Tool →</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <footer>
+    Programming Tools |
+    <a href="https://github.com/shredmentor/programming-tools">
+      View on GitHub
+    </a>
+  </footer>
+</main>
+
+<script>
+  // Display screenshots when available.
+  // Otherwise, retain the styled placeholders.
+  document.querySelectorAll(".preview img").forEach(img => {
+    function showImage() {
+      img.style.display = "block";
+      const placeholder = img.nextElementSibling;
+      if (placeholder) placeholder.style.display = "none";
+    }
+
+    img.addEventListener("load", showImage);
+
+    if (img.complete && img.naturalWidth > 0) {
+      showImage();
+    }
+  });
+</script>
+
+</body>
+</html>
