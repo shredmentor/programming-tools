@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Binary Number Translator</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #101010;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    text-align: center;
+  }
+
+  .app {
+    min-height: 100vh;
+    background: #101010;
+    padding: 20px 0 24px;
+  }
+
+  .total {
+    margin: 0 0 20px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(34px, 5vw, 64px);
+    color: #ffcc66;
+    word-break: break-word;
+    padding: 0 20px;
+  }
+
+  .translator {
+    width: 90vw;
+    margin: 0 auto;
+    padding: 10px 0 22px;
+  }
+
+  .byte-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 5vw;
+    margin-bottom: 22px;
+    flex-wrap: nowrap;
+  }
+
+  .byte-group {
+    flex: 1 1 0;
+    max-width: 90vw;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    row-gap: 6px;
+  }
+
+  .binary-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(42px, 7vw, 96px);
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    color: #eee;
+  }
+
+  .binary-cell.on {
+    color: #ffcc66;
+  }
+
+  .value-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(11px, 1.35vw, 20px);
+    color: #888;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .value-cell.on {
+    color: #ffcc66;
+  }
+
+  .exponent-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(11px, 1.2vw, 18px);
+    color: #666;
+  }
+
+  .controls {
+    margin: 20px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+    max-width: 90vw;
+    padding: 0 14px;
+  }
+
+  button {
+    background: #1f1f1f;
+    color: #bbb;
+    border: 1px solid #444;
+    padding: 7px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  button:hover,
+  button.active {
+    color: #ffcc66;
+    border-color: #ffcc66;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <div class="total" id="total">0</div>
+  <div class="translator" id="translator"></div>
+  <div class="controls" id="controls"></div>
+</div>
+
+<script>
+  let bitCount = 8;
+  let bits = Array(bitCount).fill(0);
+
+  const translator = document.getElementById("translator");
+  const controls = document.getElementById("controls");
+  const totalDisplay = document.getElementById("total");
+
+  function makeControls() {
+    controls.innerHTML = "";
+
+    for (let count = 8; count <= 64; count += 8) {
+      const button = document.createElement("button");
+      button.textContent = `${count}-bit`;
+      button.classList.toggle("active", count === bitCount);
+
+      button.addEventListener("click", () => {
+        bitCount = count;
+        bits = Array(bitCount).fill(0);
+        render();
+      });
+
+      controls.appendChild(button);
+    }
+  }
+
+  function render() {
+    translator.innerHTML = "";
+    makeControls();
+
+    for (let start = 0; start < bitCount; start += 8) {
+      const row = document.createElement("div");
+      row.className = "byte-row";
+
+      const group = document.createElement("div");
+      group.className = "byte-group";
+
+      for (let i = start; i < start + 8; i++) {
+        const binaryCell = document.createElement("div");
+        binaryCell.className = "binary-cell";
+        binaryCell.textContent = bits[i];
+        binaryCell.classList.toggle("on", bits[i] === 1);
+
+        binaryCell.addEventListener("click", () => {
+          bits[i] = bits[i] === 0 ? 1 : 0;
+          render();
+        });
+
+        group.appendChild(binaryCell);
+      }
+
+      for (let i = start; i < start + 8; i++) {
+        const exponent = bitCount - 1 - i;
+        const value = 2n ** BigInt(exponent);
+
+        const valueCell = document.createElement("div");
+        valueCell.className = "value-cell";
+        valueCell.textContent = value.toLocaleString("en-US");
+        valueCell.classList.toggle("on", bits[i] === 1);
+
+        group.appendChild(valueCell);
+      }
+
+      for (let i = start; i < start + 8; i++) {
+        const exponent = bitCount - 1 - i;
+
+        const exponentCell = document.createElement("div");
+        exponentCell.className = "exponent-cell";
+        exponentCell.textContent = `2^${exponent}`;
+
+        group.appendChild(exponentCell);
+      }
+
+      row.appendChild(group);
+      translator.appendChild(row);
+    }
+
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let total = 0n;
+
+    for (let i = 0; i < bitCount; i++) {
+      if (bits[i] === 1) {
+        const exponent = bitCount - 1 - i;
+        total += 2n ** BigInt(exponent);
+      }
+    }
+
+    totalDisplay.textContent = total.toLocaleString("en-US");
+  }
+
+  render();
+</script>
+
+</body>
+</html>
