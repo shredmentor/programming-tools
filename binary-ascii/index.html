@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Binary ASCII Translator</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #101010;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    text-align: center;
+  }
+
+  .app {
+    min-height: 100vh;
+    background: #101010;
+    padding: 20px 0 24px;
+  }
+
+  .ascii {
+    margin: 0 0 6px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(60px, 10vw, 130px);
+    color: #ffcc66;
+    min-height: 1.15em;
+  }
+
+  .total {
+    margin: 0 0 24px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(24px, 4vw, 48px);
+    color: #ffcc66;
+  }
+
+  .translator {
+    width: 90vw;
+    margin: 0 auto;
+    padding: 10px 0 22px;
+  }
+
+  .byte-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    row-gap: 6px;
+  }
+
+  .binary-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(42px, 7vw, 96px);
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #eee;
+  }
+
+  .binary-cell.on {
+    color: #ffcc66;
+  }
+
+  .value-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(11px, 1.35vw, 20px);
+    color: #888;
+  }
+
+  .value-cell.on {
+    color: #ffcc66;
+  }
+
+  .exponent-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(11px, 1.2vw, 18px);
+    color: #666;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="ascii" id="asciiDisplay">NUL</div>
+
+  <div class="total" id="total">0</div>
+
+  <div class="translator">
+    <div class="byte-group" id="byteGroup"></div>
+  </div>
+
+</div>
+
+<script>
+  let bits = Array(8).fill(0);
+
+  const byteGroup = document.getElementById("byteGroup");
+  const totalDisplay = document.getElementById("total");
+  const asciiDisplay = document.getElementById("asciiDisplay");
+
+  const asciiNames = {
+    0: "NUL",
+    1: "SOH",
+    2: "STX",
+    3: "ETX",
+    4: "EOT",
+    5: "ENQ",
+    6: "ACK",
+    7: "BEL",
+    8: "BS",
+    9: "TAB",
+    10: "LF",
+    11: "VT",
+    12: "FF",
+    13: "CR",
+    14: "SO",
+    15: "SI",
+    16: "DLE",
+    17: "DC1",
+    18: "DC2",
+    19: "DC3",
+    20: "DC4",
+    21: "NAK",
+    22: "SYN",
+    23: "ETB",
+    24: "CAN",
+    25: "EM",
+    26: "SUB",
+    27: "ESC",
+    28: "FS",
+    29: "GS",
+    30: "RS",
+    31: "US",
+    32: "SPACE",
+    127: "DEL"
+  };
+
+  function render() {
+    byteGroup.innerHTML = "";
+
+    // Main binary digits
+    for (let i = 0; i < 8; i++) {
+      const binaryCell = document.createElement("div");
+
+      binaryCell.className = "binary-cell";
+      binaryCell.textContent = bits[i];
+      binaryCell.classList.toggle("on", bits[i] === 1);
+
+      binaryCell.addEventListener("click", () => {
+        bits[i] = bits[i] === 0 ? 1 : 0;
+        render();
+      });
+
+      byteGroup.appendChild(binaryCell);
+    }
+
+    // Decimal value of each bit position
+    for (let i = 0; i < 8; i++) {
+      const exponent = 7 - i;
+      const value = 2 ** exponent;
+
+      const valueCell = document.createElement("div");
+
+      valueCell.className = "value-cell";
+      valueCell.textContent = value.toLocaleString("en-US");
+      valueCell.classList.toggle("on", bits[i] === 1);
+
+      byteGroup.appendChild(valueCell);
+    }
+
+    // Powers of 2
+    for (let i = 0; i < 8; i++) {
+      const exponent = 7 - i;
+
+      const exponentCell = document.createElement("div");
+
+      exponentCell.className = "exponent-cell";
+      exponentCell.textContent = `2^${exponent}`;
+
+      byteGroup.appendChild(exponentCell);
+    }
+
+    updateASCII();
+  }
+
+  function updateASCII() {
+    let value = 0;
+
+    for (let i = 0; i < 8; i++) {
+      value += bits[i] * (2 ** (7 - i));
+    }
+
+    totalDisplay.textContent = value;
+
+    if (asciiNames[value] !== undefined) {
+      asciiDisplay.textContent = asciiNames[value];
+    }
+    else if (value >= 33 && value <= 126) {
+      asciiDisplay.textContent = String.fromCharCode(value);
+    }
+    else {
+      asciiDisplay.textContent = "NOT ASCII";
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>
