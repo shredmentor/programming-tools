@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hex Color Translator</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #101010;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    text-align: center;
+  }
+
+  .app {
+    min-height: 100vh;
+    background: #101010;
+    padding: 20px 0 24px;
+  }
+
+  .total {
+    margin: 0 0 20px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(34px, 5vw, 64px);
+    color: #ffcc66;
+    word-break: break-word;
+    padding: 0 20px;
+  }
+
+  .hex-display {
+    margin: 0 0 12px;
+    font-family: "Courier New", monospace;
+    font-size: clamp(22px, 3vw, 42px);
+    color: #ffcc66;
+    word-break: break-word;
+    padding: 0 20px;
+  }
+
+  .translator {
+    width: 90vw;
+    margin: 0 auto;
+    padding: 10px 0 22px;
+  }
+
+  .hex-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+    flex-wrap: nowrap;
+  }
+
+  .hex-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    row-gap: 6px;
+  }
+
+  .hex-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(42px, 7vw, 96px);
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    color: #eee;
+  }
+
+  .hex-cell.on {
+    color: #ffcc66;
+  }
+
+  .value-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(10px, 1.2vw, 17px);
+    color: #888;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .value-cell.on {
+    color: #ffcc66;
+  }
+
+  .exponent-cell {
+    font-family: "Courier New", monospace;
+    font-size: clamp(10px, 1.1vw, 16px);
+    color: #666;
+  }
+
+  .color-square {
+    width: 250px;
+    height: 250px;
+    margin: 20px auto 0;
+    background: #000000;
+    border: 2px solid #444;
+    border-radius: 8px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <div class="total" id="total">0</div>
+  <div class="hex-display" id="hexDisplay">#000000</div>
+  <div class="translator" id="translator"></div>
+  <div class="color-square" id="colorSquare"></div>
+</div>
+
+<script>
+  const hexSymbols = "0123456789ABCDEF";
+
+  const hexDigitCount = 6;
+  let digits = Array(hexDigitCount).fill(0);
+
+  const translator = document.getElementById("translator");
+  const totalDisplay = document.getElementById("total");
+  const hexDisplay = document.getElementById("hexDisplay");
+  const colorSquare = document.getElementById("colorSquare");
+
+  function render() {
+    translator.innerHTML = "";
+
+    const row = document.createElement("div");
+    row.className = "hex-row";
+
+    const group = document.createElement("div");
+    group.className = "hex-group";
+
+    for (let i = 0; i < hexDigitCount; i++) {
+      const hexCell = document.createElement("div");
+      hexCell.className = "hex-cell";
+      hexCell.textContent = hexSymbols[digits[i]];
+      hexCell.classList.toggle("on", digits[i] !== 0);
+
+      hexCell.addEventListener("click", () => {
+        digits[i] = (digits[i] + 1) % 16;
+        render();
+      });
+
+      group.appendChild(hexCell);
+    }
+
+    for (let i = 0; i < hexDigitCount; i++) {
+      const exponent = hexDigitCount - 1 - i;
+      const placeValue = 16n ** BigInt(exponent);
+      const actualValue = BigInt(digits[i]) * placeValue;
+
+      const valueCell = document.createElement("div");
+      valueCell.className = "value-cell";
+      valueCell.textContent = actualValue.toLocaleString("en-US");
+      valueCell.classList.toggle("on", digits[i] !== 0);
+
+      group.appendChild(valueCell);
+    }
+
+    for (let i = 0; i < hexDigitCount; i++) {
+      const exponent = hexDigitCount - 1 - i;
+
+      const exponentCell = document.createElement("div");
+      exponentCell.className = "exponent-cell";
+      exponentCell.textContent = `16^${exponent}`;
+
+      group.appendChild(exponentCell);
+    }
+
+    row.appendChild(group);
+    translator.appendChild(row);
+
+    updateDisplays();
+  }
+
+  function updateDisplays() {
+    let total = 0n;
+    const hexValue = "#" + digits.map(digit => hexSymbols[digit]).join("");
+
+    for (let i = 0; i < hexDigitCount; i++) {
+      const exponent = hexDigitCount - 1 - i;
+      total += BigInt(digits[i]) * (16n ** BigInt(exponent));
+    }
+
+    totalDisplay.textContent = total.toLocaleString("en-US");
+    hexDisplay.textContent = hexValue;
+    colorSquare.style.background = hexValue;
+  }
+
+  render();
+</script>
+
+</body>
+</html>
