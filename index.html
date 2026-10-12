@@ -68,7 +68,7 @@
 
   .cards {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 22px;
   }
 
@@ -179,8 +179,8 @@
 
     <div class="intro">
       <p>
-        I created these Programming Tools in ChatGPT when I first started learning programming to give myself
-        <i>interactive</i> learning tools to better understand how:
+        I created these Programming Tools to give myself
+        interactive learning tools to better understand how:
       </p>
 
       <ol>
@@ -190,7 +190,7 @@
           of numbers are accessible by adding additional bytes.
         </li>
         <li>
-          <strong>ASCII characters</strong> are represented
+          <strong>ASCII and Unicode characters</strong> are represented
           by binary code.
         </li>
         <li>
@@ -244,6 +244,40 @@
           <span class="launch">Launch Tool →</span>
         </div>
       </a>
+
+      <a class="card" href="./unicode/">
+        <div class="preview">
+          <img src="./unicode.png" alt="Unicode binary translator screenshot"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <div class="placeholder">U+1F600</div>
+        </div>
+        <div class="card-body">
+          <h3>Binary to Unicode Translator</h3>
+          <p>
+            Explore how Unicode code points represent characters from
+            writing systems and symbols worldwide. Toggle 21 binary digits
+            or enter a hexadecimal code point to see its character.
+          </p>
+          <span class="launch">Launch Tool →</span>
+        </div>
+      </a>
+
+      <a class="card" href="./utf-encoding/">
+        <div class="preview">
+          <img src="./utf-encoding.png" alt="UTF encoding explorer screenshot">
+          <div class="placeholder">UTF-8 · UTF-16 · UTF-32</div>
+        </div>
+        <div class="card-body">
+          <h3>UTF Encoding Explorer</h3>
+          <p>
+            See how Unicode characters become bytes in UTF-8, UTF-16,
+            and UTF-32. Toggle individual bits to explore encoded byte
+            sequences and their validity.
+          </p>
+          <span class="launch">Launch Tool →</span>
+        </div>
+      </a>
+
 
       <a class="card" href="./hex-color/">
         <div class="preview">
