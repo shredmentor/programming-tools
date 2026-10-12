@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTF Encoding Explorer</title>
+<style>
+:root{--bg:#101010;--yellow:#ffcc66;--muted:#888}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#ddd}body{text-align:center;font-family:Arial,sans-serif}.app{min-height:100vh;padding:22px 0 45px}.character{height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 12px;font:700 clamp(65px,12vw,135px)/1.1 "Arial Narrow",Arial,sans-serif;color:var(--yellow)}.character.small{font-size:clamp(25px,5vw,45px);padding:0 12px}.codepoint{min-height:52px;display:flex;align-items:center;justify-content:center;padding:0 12px;font:700 clamp(22px,4vw,42px) "Arial Narrow",Arial,sans-serif;color:var(--yellow)}.subtitle{margin:9px auto 22px;padding:0 15px;font-size:14px;color:#999}.choices{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto 22px}.choices button,.entry button{background:#222;border:1px solid #555;border-radius:5px;color:#ddd;padding:10px 15px;font:600 14px Arial;cursor:pointer}.choices button.selected{border-color:var(--yellow);color:var(--yellow)}.summary{font:700 18px "Courier New",monospace;color:var(--yellow);padding:0 12px;overflow-wrap:anywhere}.details{font-size:13px;color:#999;margin:8px auto 25px;padding:0 15px;max-width:700px}.rows{width:90vw;max-width:1100px;margin:0 auto}.byte{margin:0 0 25px}.byte-heading{color:var(--yellow);font:700 15px "Courier New",monospace;margin-bottom:12px}.grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));row-gap:6px}.bit{border:0;background:transparent;color:#eee;font:700 clamp(40px,7vw,88px)/1 "Courier New",monospace;padding:0;cursor:pointer;touch-action:manipulation}.bit.on,.value.on{color:var(--yellow)}.bit:focus-visible{outline:2px solid var(--yellow)}.value,.power{font:clamp(11px,1.5vw,18px) "Courier New",monospace;color:var(--muted)}.power{color:#666}.entry{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin:25px 12px 0}.entry label{font-size:14px;color:#aaa}.entry input{width:140px;background:#222;border:1px solid #555;border-radius:5px;padding:10px;color:var(--yellow);font:17px "Courier New",monospace}.error{min-height:24px;color:#ff9999;font-size:13px;margin:8px auto;padding:0 12px}.hint{max-width:700px;margin:10px auto;color:#888;font-size:13px;padding:0 15px}@media(max-width:520px){.rows{width:96vw}.value,.power{font-size:10px}.bit{font-size:clamp(35px,8vw,58px)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="character" class="character">A</div>
+  <div id="codepoint" class="codepoint">U+0041 · 65</div>
+  <p class="subtitle">See how a Unicode character is encoded into bytes.</p>
+  <div class="choices" role="group" aria-label="Encoding">
+    <button data-encoding="utf8" class="selected" type="button">UTF-8</button>
+    <button data-encoding="utf16" type="button">UTF-16 BE</button>
+    <button data-encoding="utf32" type="button">UTF-32 BE</button>
+  </div>
+  <div id="summary" class="summary"></div>
+  <div id="details" class="details"></div>
+  <div id="rows" class="rows"></div>
+  <form id="entry" class="entry">
+    <label for="hex">Go to code point:</label>
+    <input id="hex" value="U+0041" autocomplete="off" spellcheck="false" aria-label="Unicode code point in hexadecimal">
+    <button type="submit">Go</button>
+  </form>
+  <div id="error" class="error" role="status"></div>
+  <p class="hint">Tap any binary digit to change its byte. Invalid UTF sequences are identified rather than silently converted into another character. BE means big-endian (most significant byte first).</p>
+</div>
+<script>
+const rows=document.getElementById('rows'),character=document.getElementById('character'),codepoint=document.getElementById('codepoint'),summary=document.getElementById('summary'),details=document.getElementById('details'),hex=document.getElementById('hex'),error=document.getElementById('error');
+let encoding='utf8',bytes=[],lastCodepoint=0x41;
+function scalar(n){return Number.isInteger(n)&&n>=0&&n<=0x10ffff&&!(n>=0xd800&&n<=0xdfff)}
+function encode(cp){
+ if(encoding==='utf8')return [...new TextEncoder().encode(String.fromCodePoint(cp))];
+ if(encoding==='utf16'){
+   const units=[];
+   if(cp<=0xffff)units.push(cp);
+   else{const v=cp-0x10000;units.push(0xd800+(v>>10),0xdc00+(v&1023))}
+   return units.flatMap(u=>[u>>8,u&255]);
+ }
+ return [(cp>>>24)&255,(cp>>>16)&255,(cp>>>8)&255,cp&255];
+}
+function decode(){
+ if(encoding==='utf8'){
+   try{const text=new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(bytes));const chars=Array.from(text);if(chars.length!==1)return null;return chars[0].codePointAt(0)}catch{return null}
+ }
+ if(encoding==='utf16'){
+   if(bytes.length%2)return null;
+   const units=[];for(let i=0;i<bytes.length;i+=2)units.push(bytes[i]*256+bytes[i+1]);
+   if(units.length===1&&scalar(units[0]))return units[0];
+   if(units.length===2&&units[0]>=0xd800&&units[0]<=0xdbff&&units[1]>=0xdc00&&units[1]<=0xdfff)return 0x10000+((units[0]-0xd800)<<10)+(units[1]-0xdc00);
+   return null;
+ }
+ if(bytes.length!==4)return null;
+ const n=bytes[0]*16777216+bytes[1]*65536+bytes[2]*256+bytes[3];return scalar(n)?n:null;
+}
+function display(cp){
+ if(cp===0x20)return 'SPACE';
+ if(cp<0x20||cp===0x7f)return 'CONTROL';
+ if(cp>=0x80&&cp<=0x9f)return 'CONTROL';
+ if([0x200b,0x200c,0x200d,0xfe0e,0xfe0f,0xfeff].includes(cp))return 'INVISIBLE';
+ return String.fromCodePoint(cp);
+}
+function render(){
+ rows.replaceChildren();const cp=decode();
+ if(cp===null){character.textContent='INVALID';character.classList.add('small');codepoint.textContent='Invalid '+(encoding==='utf8'?'UTF-8':encoding==='utf16'?'UTF-16':'UTF-32')+' sequence'}
+ else{lastCodepoint=cp;character.textContent=display(cp);character.classList.toggle('small',display(cp).length>2);codepoint.textContent='U+'+cp.toString(16).toUpperCase().padStart(4,'0')+' · '+cp.toLocaleString('en-US');hex.value='U+'+cp.toString(16).toUpperCase().padStart(4,'0')}
+ summary.textContent=bytes.map(b=>b.toString(16).toUpperCase().padStart(2,'0')).join(' ');
+ details.textContent=bytes.length+' byte'+(bytes.length===1?'':'s')+' ('+(bytes.length*8)+' bits) · '+(encoding==='utf8'?'UTF-8':encoding==='utf16'?'UTF-16 big-endian':'UTF-32 big-endian');
+ bytes.forEach((byte,index)=>{
+  const wrap=document.createElement('section');wrap.className='byte';
+  const title=document.createElement('div');title.className='byte-heading';title.textContent='BYTE '+(index+1)+' · '+byte.toString(16).toUpperCase().padStart(2,'0')+' · '+byte;wrap.appendChild(title);
+  const grid=document.createElement('div');grid.className='grid';
+  for(let layer=0;layer<3;layer++)for(let i=7;i>=0;i--){
+   const on=Boolean(byte&(1<<i));const el=document.createElement(layer===0?'button':'div');
+   if(layer===0){el.type='button';el.className='bit'+(on?' on':'');el.textContent=on?'1':'0';el.setAttribute('aria-label','Toggle byte '+(index+1)+' bit '+i);el.addEventListener('click',()=>{bytes[index]^=1<<i;error.textContent='';render()})}
+   else if(layer===1){el.className='value'+(on?' on':'');el.textContent=1<<i}
+   else{el.className='power';el.textContent='2^'+i}
+   grid.appendChild(el)
+  }
+  wrap.appendChild(grid);rows.appendChild(wrap)
+ });
+}
+function load(cp){bytes=encode(cp);error.textContent='';render()}
+document.querySelectorAll('[data-encoding]').forEach(button=>button.addEventListener('click',()=>{
+ encoding=button.dataset.encoding;
+ document.querySelectorAll('[data-encoding]').forEach(b=>b.classList.toggle('selected',b===button));
+ load(lastCodepoint);
+}));
+document.getElementById('entry').addEventListener('submit',e=>{
+ e.preventDefault();const input=hex.value.trim().replace(/^U\+/i,'').replace(/^0x/i,'');
+ if(!/^[0-9a-f]{1,6}$/i.test(input)||!scalar(parseInt(input,16))){error.textContent='Enter a valid Unicode scalar value from U+0000 to U+10FFFF (excluding surrogates).';return}
+ load(parseInt(input,16));
+});
+load(0x41);
+</script>
+</body>
+</html>

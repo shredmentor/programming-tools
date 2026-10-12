@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Unicode Translator</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: #101010; color: #ddd; }
+  body { font-family: Arial, sans-serif; text-align: center; }
+  .app { min-height: 100vh; padding: 24px 0 45px; }
+  .character { height: 170px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0 12px; line-height: 1.1; font-family: "Arial Narrow", Arial, sans-serif; font-weight: 700; font-size: clamp(62px, 12vw, 135px); color: #ffcc66; overflow-wrap: anywhere; }
+  .character.small { font-size: clamp(25px, 5vw, 45px); padding: 0 12px; }
+  .decimal { min-height: 54px; display: flex; align-items: center; justify-content: center; font-family: "Arial Narrow", Arial, sans-serif; font-weight: 700; font-size: clamp(25px, 4vw, 45px); color: #ffcc66; }
+  .codepoint { height: 44px; display: flex; align-items: center; justify-content: center; margin-top: 4px; font-family: "Courier New", monospace; font-size: clamp(19px, 3vw, 30px); color: #ffcc66; }
+  .description { min-height: 54px; display: flex; align-items: center; justify-content: center; margin: 10px auto 25px; padding: 0 12px; color: #888; font-size: 13px; max-width: 600px; }
+  .translator { width: 90vw; max-width: 1150px; margin: 20px auto 0; }
+  .byte-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin-bottom: 26px; row-gap: 6px; }
+  .bit { border: 0; background: transparent; padding: 0; font-family: "Courier New", monospace; font-size: clamp(35px, 6.5vw, 85px); font-weight: bold; line-height: 1.15; color: #eee; cursor: pointer; touch-action: manipulation; }
+  .bit.on, .value.on { color: #ffcc66; }
+  .bit:focus-visible { outline: 2px solid #ffcc66; border-radius: 4px; }
+  .value, .exponent { font-family: "Courier New", monospace; font-size: clamp(10px, 1.5vw, 17px); white-space: nowrap; }
+  .value { color: #888; }
+  .exponent { color: #666; }
+  .jump { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 25px auto 0; padding: 0 12px; }
+  .jump label { color: #aaa; font-size: 14px; }
+  .jump input { width: 120px; background: #222; color: #ffcc66; border: 1px solid #555; border-radius: 5px; padding: 9px 10px; font: 17px "Courier New", monospace; }
+  .jump button { background: #252525; color: #ffcc66; border: 1px solid #555; border-radius: 5px; padding: 10px 15px; cursor: pointer; }
+  .error { min-height: 20px; color: #ff9999; font-size: 13px; margin-top: 7px; }
+  @media (max-width: 500px) { .translator { width: 96vw; } .value, .exponent { font-size: 10px; letter-spacing: -0.7px; } .byte-row { margin-bottom: 20px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="character" class="character">A</div>
+  <div id="decimal" class="decimal">65</div>
+  <div id="codepoint" class="codepoint">U+0041</div>
+  <div id="description" class="description">Unicode code point represented as 21 binary digits (not UTF-8 bytes).</div>
+  <div id="translator" class="translator" aria-label="21-bit Unicode code point"></div>
+  <form id="jump" class="jump">
+    <label for="hexInput">Go to code point:</label>
+    <input id="hexInput" type="text" value="U+0041" aria-label="Unicode code point in hexadecimal" autocomplete="off" spellcheck="false">
+    <button type="submit">Go</button>
+  </form>
+  <div id="error" class="error" role="status"></div>
+</div>
+<script>
+  const MAX = 0x10FFFF;
+  let number = 0x41;
+  const translator = document.getElementById('translator');
+  const character = document.getElementById('character');
+  const decimal = document.getElementById('decimal');
+  const codepoint = document.getElementById('codepoint');
+  const description = document.getElementById('description');
+  const hexInput = document.getElementById('hexInput');
+  const error = document.getElementById('error');
+  const controls = {0:'NUL', 9:'TAB', 10:'LF', 13:'CR', 27:'ESC', 32:'SPACE', 127:'DEL'};
+
+  function render() {
+    translator.replaceChildren();
+    // 21 bits: 5 high bits followed by two complete 8-bit rows.
+    // The first row has three blank columns to preserve byte alignment.
+    const rows = [[20,19,18,17,16], [15,14,13,12,11,10,9,8], [7,6,5,4,3,2,1,0]];
+    for (const positions of rows) {
+      const row = document.createElement('div');
+      row.className = 'byte-row';
+      const pad = 8 - positions.length;
+      for (let layer = 0; layer < 3; layer++) {
+        for (let i = 0; i < pad; i++) row.appendChild(document.createElement('div'));
+        for (const power of positions) {
+          const on = Boolean(number & (2 ** power));
+          const cell = document.createElement(layer === 0 ? 'button' : 'div');
+          if (layer === 0) {
+            cell.type = 'button';
+            cell.className = 'bit' + (on ? ' on' : '');
+            cell.textContent = on ? '1' : '0';
+            cell.setAttribute('aria-label', `Toggle bit ${power}, currently ${on ? 1 : 0}`);
+            cell.addEventListener('click', () => {
+              number ^= 2 ** power;
+              render();
+            });
+          } else if (layer === 1) {
+            cell.className = 'value' + (on ? ' on' : '');
+            cell.textContent = (2 ** power).toLocaleString('en-US');
+          } else {
+            cell.className = 'exponent';
+            cell.textContent = `2^${power}`;
+          }
+          row.appendChild(cell);
+        }
+      }
+      translator.appendChild(row);
+    }
+    decimal.textContent = number.toLocaleString('en-US');
+    codepoint.textContent = 'U+' + number.toString(16).toUpperCase().padStart(4, '0');
+    hexInput.value = codepoint.textContent;
+    error.textContent = '';
+    character.classList.remove('small');
+    if (number > MAX) {
+      character.textContent = 'OUT OF RANGE';
+      character.classList.add('small');
+      description.textContent = 'Unicode code points end at U+10FFFF.';
+    } else if (number >= 0xD800 && number <= 0xDFFF) {
+      character.textContent = 'SURROGATE';
+      character.classList.add('small');
+      description.textContent = 'Reserved for UTF-16 encoding; not a Unicode scalar value.';
+    } else if (number < 32 || (number >= 127 && number <= 159)) {
+      character.textContent = controls[number] || 'CONTROL';
+      character.classList.add('small');
+      description.textContent = 'Non-printing control character.';
+    } else if (number === 32 || number === 0xA0) {
+      character.textContent = number === 32 ? 'SPACE' : 'NO-BREAK SPACE';
+      character.classList.add('small');
+      description.textContent = 'Whitespace character.';
+    } else {
+      character.textContent = String.fromCodePoint(number);
+      description.textContent = 'Unicode code point represented as 21 binary digits (not UTF-8 bytes). Some characters may not have a glyph in your device fonts.';
+    }
+  }
+
+  document.getElementById('jump').addEventListener('submit', event => {
+    event.preventDefault();
+    const raw = hexInput.value.trim().replace(/^U\+/i, '').replace(/^0x/i, '');
+    if (!/^[0-9a-f]{1,6}$/i.test(raw) || parseInt(raw, 16) > MAX) {
+      error.textContent = 'Enter a hexadecimal code point from U+0000 to U+10FFFF.';
+      return;
+    }
+    number = parseInt(raw, 16);
+    render();
+  });
+  render();
+</script>
+</body>
+</html>
