@@ -32,7 +32,7 @@
   }
 
   h1 {
-    font-family: "Arial Narrow", Arial, sans-serif;
+    font-family: "Courier New", Courier, monospace;
     font-stretch: condensed;
     font-size: clamp(36px, 5vw, 58px);
     line-height: 1.1;
@@ -62,13 +62,14 @@
   }
 
   h2 {
+    font-family: "Courier New", Courier, monospace;
     font-size: 22px;
     margin-bottom: 20px;
   }
 
   .cards {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 22px;
   }
 
@@ -82,7 +83,8 @@
     --family: var(--accent);
     --family-border: var(--border);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    min-height: 235px;
     background: var(--card);
     border: 1px solid var(--family-border);
     border-radius: 12px;
@@ -100,13 +102,15 @@
   }
 
   .preview {
-    aspect-ratio: 16 / 10;
+    width: 40%;
+    flex: 0 0 40%;
+    min-width: 0;
     background: #080808;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
 
   .preview img {
@@ -129,13 +133,15 @@
   }
 
   .card-body {
-    padding: 22px;
+    width: 60%;
+    padding: 26px;
     flex: 1;
     display: flex;
     flex-direction: column;
   }
 
   .card h3 {
+    font-family: "Courier New", Courier, monospace;
     margin: 0 0 12px;
     color: var(--family);
     font-size: 21px;
@@ -174,6 +180,9 @@
   @media (max-width: 760px) {
     main { padding-top: 32px; }
     .cards { grid-template-columns: 1fr; }
+    .card { flex-direction: column; min-height: 0; }
+    .preview { width: 100%; flex: none; aspect-ratio: 16 / 10; border-right: 0; border-bottom: 1px solid var(--border); }
+    .card-body { width: 100%; padding: 22px; }
     .intro { font-size: 15px; }
     .placeholder { font-size: 38px; }
   }
